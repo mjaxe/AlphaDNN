@@ -24,6 +24,8 @@ parser = ArgumentParser()
 # Hint: Advanced optimizer will achieve better performance.
 # Hint: Large Epochs will achieve better performance.
 # Hint: Large Hidden Size will achieve better performance.
+
+#You can try different types of optimizers like sgd, adam, rmsprop and so on
 parser.add_argument("--optimizer", default='sgd', type=str)
 parser.add_argument("--epochs", default=10, type=int)
 parser.add_argument("--hidden_size", default=32, type=int)
@@ -46,7 +48,7 @@ if os.path.exists(args.model_output_path) is False:
     os.mkdir(args.model_output_path)
 
 if args.model_nick_name is None:
-    setattr(args, "model_nick_name", f"OPT:{args.optimizer}-E:{args.epochs}-H:{args.hidden_size}-S:{args.scale_factor}")
+    setattr(args, "model_nick_name", f"OPT-{args.optimizer}-E-{args.epochs}-H-{args.hidden_size}-S-{args.scale_factor}")
 
 '''
 1. Load the dataset
@@ -122,6 +124,8 @@ model = Sequential()
 # Build up a neural network to achieve better performance.
 # Hint: Deeper networks (i.e., more hidden layers) and a different activation function may achieve better results.
 model.add(Flatten())
+
+#switch ReLu, with SeLu, and Tanh activation units
 model.add(Dense(args.hidden_size, activation="relu")) # first layer
 
 ###########################MAGIC ENDS HERE##########################
