@@ -8,10 +8,10 @@ from time import time
 import os
 import random
 from sklearn.model_selection import train_test_split
-
+import math
 
 # PLS DO NOT EXCEED THIS TIME LIMIT
-MAXIMIZED_RUNNINGTIME=1000
+MAXIMIZED_RUNNINGTIME = 1000
 # REPRODUCE THE EXP
 seed = 123
 random.seed(seed)
@@ -34,14 +34,12 @@ parser.add_argument("--is_pic_vis", action="store_true")
 parser.add_argument("--model_output_path", type=str, default="./output")
 parser.add_argument("--model_nick_name", type=str, default=None)
 
-
-
 args = parser.parse_args()
 start_time = time()
 # Hyper-parameter tuning
 # Custom dataset preprocess
 
-# create the output dir if it not exists.
+# create the output_adagrad dir if it not exists.
 if os.path.exists(args.model_output_path) is False:
     os.mkdir(args.model_output_path)
 
@@ -55,14 +53,14 @@ Please do not change this code block
 class_names = {
     0: "airplane",
     1: "automobile",
-    2:"bird",
-    3:"cat",
-    4:"deer",
-    5:"dog",
-    6:"frog",
-    7:"horse",
-    8:"ship",
-    9:"truck"
+    2: "bird",
+    3: "cat",
+    4: "deer",
+    5: "dog",
+    6: "frog",
+    7: "horse",
+    8: "ship",
+    9: "truck"
 }
 (x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
 
@@ -76,14 +74,14 @@ x_test = x_test[:, :, :, 0]
 
 # split the training dataset into training and validation
 # 70% training dataset and 30% validation dataset
-x_train, x_valid, y_train, y_valid = train_test_split(x_train, y_train, test_size=0.3, random_state=seed, stratify=y_train)
-
+x_train, x_valid, y_train, y_valid = train_test_split(x_train, y_train, test_size=0.3, random_state=seed,
+                                                      stratify=y_train)
 
 if args.is_pic_vis:
     # Visualize the image
-    plt.figure(figsize=(10,10))
+    plt.figure(figsize=(10, 10))
     for i in range(25):
-        plt.subplot(5,5,i+1)
+        plt.subplot(5, 5, i + 1)
         plt.xticks([])
         plt.yticks([])
         plt.grid(False)
@@ -91,18 +89,17 @@ if args.is_pic_vis:
         plt.xlabel(class_names[y_train[i][0]])
     plt.show()
 
-
 '''
 2. Dataset Preprocess
 '''
+
 # Scale the image
 ###########################MAGIC HAPPENS HERE##########################
-# Scale the data attributes 
+# Scale the data attributes
 # Hint: Scaling the data in the range 0-1 would achieve better results.
 x_train = x_train / args.scale_factor
 x_valid = x_valid / args.scale_factor
 x_test = x_test / args.scale_factor
-
 ###########################MAGIC ENDS HERE##########################
 
 if args.is_pic_vis:
@@ -111,7 +108,6 @@ if args.is_pic_vis:
     plt.colorbar()
     plt.grid(False)
     plt.show()
-
 
 '''
 3. Build up Model 
@@ -122,10 +118,19 @@ model = Sequential()
 # Build up a neural network to achieve better performance.
 # Hint: Deeper networks (i.e., more hidden layers) and a different activation function may achieve better results.
 model.add(Flatten())
-model.add(Dense(args.hidden_size, activation="relu")) # first layer
-
+model.add(Dense(1024, activation="relu"))  # first layer
+model.add(Dense(512, activation="relu"))  # first layer
+model.add(Dense(256, activation="relu"))  # first layer
+model.add(Dense(128, activation="relu"))  # first layer
+# model.add(Dense(args.hidden_size, activation="tanh"))  # first layer
+# model.add(Dense(args.hidden_size, activation="exponential"))  # first layer
+# model.add(Dense(args.hidden_size, activation="elu"))  # first layer
+# model.add(Dense(args.hidden_size, activation="softplus"))  # first layer
+# model.add(Dense(args.hidden_size, activation="sigmoid"))  # first layer
+# model.add(Dense(args.hidden_size, activation="softmax"))  # first layer
+# model.add(Dense(args.hidden_size, activation="softsign"))  # first layer
 ###########################MAGIC ENDS HERE##########################
-model.add(Dense(num_labels)) # last layer
+model.add(Dense(num_labels))  # last layer
 
 # Compile Model
 model.compile(optimizer=args.optimizer,
@@ -140,7 +145,7 @@ history = model.fit(x_train, y_train,
                     batch_size=512)
 print(history.history)
 # Report Results on the test datasets
-test_loss, test_acc = model.evaluate(x_test,  y_test, verbose=2)
+test_loss, test_acc = model.evaluate(x_test, y_test, verbose=2)
 print("\nTest Accuracy: ", test_acc)
 
 end_time = time()
@@ -163,9 +168,3 @@ import matplotlib.pyplot as plt
 # Hint: check the precision and recall functions from sklearn package or you can implement these function by yourselves.
 
 ###########################MAGIC ENDS HERE##########################
-
-
-
-
-
-
