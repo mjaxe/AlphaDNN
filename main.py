@@ -172,6 +172,7 @@ print(f'val_accuracy: {history.history["val_accuracy"]}')
 print(f'precision: {prec}')
 print(f'recall: {recall}')
 
+# makes array with all wrong images
 wrong = []
 for i, prediction in enumerate(y_test_predict):
     if y_test[i] != prediction:
@@ -185,7 +186,7 @@ options = random.sample(wrong, 3)
 f = open("predictions.txt", "w")
 f.close()
 y_test = list(map(lambda x: class_names[x[0]], y_test))
-# saves every wrong image
+# saves 3 random wrong images
 for ind in options:
     pxls = x_test[ind]
     img = Image.new('RGB', (32, 32), "black")  # Create a new black image
