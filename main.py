@@ -20,14 +20,10 @@ keras.utils.set_random_seed(seed)
 
 parser = ArgumentParser()
 ###########################MAGIC HAPPENS HERE##########################
-# Different hyper-parameters will greatly influence the performance.
-# Hint: Advanced optimizer will achieve better performance.
-# Hint: Large Epochs will achieve better performance.
-# Hint: Large Hidden Size will achieve better performance.
-parser.add_argument("--optimizer", default='sgd', type=str)
-parser.add_argument("--epochs", default=10, type=int)
-parser.add_argument("--hidden_size", default=32, type=int)
-parser.add_argument("--scale_factor", default=10, type=float)
+parser.add_argument("--optimizer", default='adam', type=str)
+parser.add_argument("--epochs", default=25, type=int)
+parser.add_argument("--hidden_size", default=64, type=int)
+parser.add_argument("--scale_factor", default=255, type=float)
 ###########################MAGIC ENDS HERE##########################
 
 parser.add_argument("--is_pic_vis", action="store_true")
@@ -95,8 +91,6 @@ if args.is_pic_vis:
 
 # Scale the image
 ###########################MAGIC HAPPENS HERE##########################
-# Scale the data attributes
-# Hint: Scaling the data in the range 0-1 would achieve better results.
 x_train = x_train / args.scale_factor
 x_valid = x_valid / args.scale_factor
 x_test = x_test / args.scale_factor
@@ -122,13 +116,6 @@ model.add(Dense(1024, activation="relu"))  # first layer
 model.add(Dense(512, activation="relu"))  # first layer
 model.add(Dense(256, activation="relu"))  # first layer
 model.add(Dense(128, activation="relu"))  # first layer
-# model.add(Dense(args.hidden_size, activation="tanh"))  # first layer
-# model.add(Dense(args.hidden_size, activation="exponential"))  # first layer
-# model.add(Dense(args.hidden_size, activation="elu"))  # first layer
-# model.add(Dense(args.hidden_size, activation="softplus"))  # first layer
-# model.add(Dense(args.hidden_size, activation="sigmoid"))  # first layer
-# model.add(Dense(args.hidden_size, activation="softmax"))  # first layer
-# model.add(Dense(args.hidden_size, activation="softsign"))  # first layer
 ###########################MAGIC ENDS HERE##########################
 model.add(Dense(num_labels))  # last layer
 
@@ -144,6 +131,8 @@ history = model.fit(x_train, y_train,
                     epochs=args.epochs,
                     batch_size=512)
 print(history.history)
+
+training_accuracies = history.history["val_accuracy"]
 # Report Results on the test datasets
 test_loss, test_acc = model.evaluate(x_test, y_test, verbose=2)
 print("\nTest Accuracy: ", test_acc)
@@ -160,11 +149,81 @@ model.save(args.model_output_path + "/" + args.model_nick_name)
 y_test_predict = np.argmax(model.predict(x_test), axis=1)
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import precision_score, recall_score
+import matplotlib
+
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 ###########################MAGIC HAPPENS HERE##########################
 # Visualize the confusion matrix by matplotlib and sklearn based on y_test_predict and y_test
 # Report the precision and recall for 10 different classes
 # Hint: check the precision and recall functions from sklearn package or you can implement these function by yourselves.
+labels = list(class_names.values())
+y_test_predict = list(map(lambda x: class_names[x], y_test_predict))
+y_test = list(map(lambda x: class_names[x[0]], y_test))
+mtrx = confusion_matrix(y_test, y_test_predict, labels=labels)
+prec = precision_score(y_test, y_test_predict, labels=None, pos_label=1, average=None, sample_weight=None,
+                       zero_division='warn')
+recall = recall_score(y_test, y_test_predict, labels=None, pos_label=1, average=None, sample_weight=None,
+                      zero_division='warn')
 
+print(f'val_accuracy: {history.history["val_accuracy"]}')
+print(f'precision: {prec}')
+print(f'recall: {recall}')
+
+wrong = []
+for i, prediction in enumerate(y_test_predict):
+    if y_test[i] != prediction:
+        wrong.append(i)
+(x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
+
+from PIL import Image
+
+options = random.sample(wrong, 3)
+
+f = open("predictions.txt", "w")
+f.close()
+y_test = list(map(lambda x: class_names[x[0]], y_test))
+# saves every wrong image
+for ind in options:
+    pxls = x_test[ind]
+    img = Image.new('RGB', (32, 32), "black")  # Create a new black image
+    pixels = img.load()  # Create the pixel map
+    for i in range(img.size[0]):  # For every pixel:
+        for j in range(img.size[1]):
+            pixels[i, j] = (int(pxls[i][j][0]), int(pxls[i][j][1]), int(pxls[i][j][2]))  # Set the colour accordingly
+    pred = (ind, f'prediction: {y_test_predict[ind]}', f'actual: {y_test[ind]}')
+    f = open("predictions.txt", "a")
+    f.write(str(pred) + "\n")
+    img.save(f'{ind}.png')
+f.close()
+
+fig, ax = plt.subplots(1,2)
+im = ax[0].imshow(mtrx)
+
+# Show all ticks and label them with the respective list entries
+ax[0].set_xticks(np.arange(len(labels)), labels=labels)
+ax[0].set_yticks(np.arange(len(labels)), labels=labels)
+
+# Rotate the tick labels and set their alignment.
+plt.setp(ax[0].get_xticklabels(), rotation=45, ha="right",
+         rotation_mode="anchor")
+
+# Loop over data dimensions and create text annotations.
+for i in range(len(labels)):
+    for j in range(len(labels)):
+        text = ax[0].text(j, i, mtrx[i, j],
+                       ha="center", va="center", color="w")
+
+fig.tight_layout()
+
+# plt.show()
+
+plt.savefig("Confusion Matrix.png")
+
+
+fig.tight_layout()
+
+ax[1].plot(range(1, args.epochs + 1), training_accuracies)
+plt.savefig("accuracy.png")
 ###########################MAGIC ENDS HERE##########################
