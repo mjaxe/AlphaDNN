@@ -132,7 +132,8 @@ history = model.fit(x_train, y_train,
                     batch_size=512)
 print(history.history)
 
-training_accuracies = history.history["val_accuracy"]
+val_accuracies = history.history["val_accuracy"]
+training_accuracies = history.history["accuracy"]
 # Report Results on the test datasets
 test_loss, test_acc = model.evaluate(x_test, y_test, verbose=2)
 print("\nTest Accuracy: ", test_acc)
@@ -225,5 +226,6 @@ plt.savefig("Confusion Matrix.png")
 fig.tight_layout()
 
 ax[1].plot(range(1, args.epochs + 1), training_accuracies)
+ax[1].plot(range(1, args.epochs + 1), val_accuracies)
 plt.savefig("accuracy.png")
 ###########################MAGIC ENDS HERE##########################
